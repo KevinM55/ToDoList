@@ -1,12 +1,14 @@
 {
   "name": "todolst",
   "version": "1.0.0",
+  "description": "A simple To-Do List app",
   "main": "test.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node test.js"
   },
-  "keywords": [],
+  "dependencies": {
+    "express": "^4.21.1"
+  },
   "author": "",
-  "license": "ISC",
-  "description": ""
+  "license": "ISC"
 }
