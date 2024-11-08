@@ -1,52 +1,73 @@
 const express = require("express");
+const path = require("path");
+const db = require("./database"); // Import the database module
 const app = express();
 const PORT = 3000;
 
-// Serve static files from the "public" directory
-app.use(express.static("public", (req, res, next) => {
-    console.log("Request received for:", req.url);
-    next();
-}));
+// Middleware
+app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 
-let tasks = [];
-
-// Endpoint to get tasks
+// Fetch tasks from the database
 app.get("/tasks", (req, res) => {
-    console.log("Sending tasks:", tasks);
-    res.json(tasks);
+    db.all("SELECT * FROM tasks", (err, rows) => {
+        if (err) {
+            console.error("Error fetching tasks:", err.message);
+            res.status(500).json({ error: "Failed to retrieve tasks" });
+        } else {
+            res.json(rows);
+        }
+    });
 });
 
-// Endpoint to add a new task
+// Add a new task to the database
 app.post("/tasks", (req, res) => {
-    const task = { id: Date.now(), text: req.body.text, completed: false };
-    tasks.push(task);
-    console.log("Task added:", task);
-    res.json(task);
+    const text = req.body.text;
+    db.run("INSERT INTO tasks (text, completed) VALUES (?, 0)", text, function (err) {
+        if (err) {
+            console.error("Error adding task:", err.message);
+            res.status(500).json({ error: "Failed to add task" });
+        } else {
+            res.json({ id: this.lastID, text, completed: 0 });
+        }
+    });
 });
 
-// Endpoint to toggle task completion
+// Toggle task completion
 app.put("/tasks/:id", (req, res) => {
-    const id = parseInt(req.params.id);
-    const task = tasks.find((t) => t.id === id);
-    if (task) {
-        task.completed = !task.completed;
-        console.log("Task updated:", task);
-        res.json(task);
-    } else {
-        res.status(404).send("Task not found");
-    }
+    const id = req.params.id;
+    db.get("SELECT completed FROM tasks WHERE id = ?", id, (err, row) => {
+        if (err) {
+            console.error("Error fetching task:", err.message);
+            res.status(500).json({ error: "Failed to update task" });
+        } else {
+            const newStatus = row.completed ? 0 : 1;
+            db.run("UPDATE tasks SET completed = ? WHERE id = ?", newStatus, id, (err) => {
+                if (err) {
+                    console.error("Error updating task:", err.message);
+                    res.status(500).json({ error: "Failed to update task" });
+                } else {
+                    res.json({ id, completed: newStatus });
+                }
+            });
+        }
+    });
 });
 
-// Endpoint to delete a task
+// Delete a task from the database
 app.delete("/tasks/:id", (req, res) => {
-    const id = parseInt(req.params.id);
-    tasks = tasks.filter((task) => task.id !== id);
-    console.log("Task deleted with id:", id);
-    res.sendStatus(200);
+    const id = req.params.id;
+    db.run("DELETE FROM tasks WHERE id = ?", id, (err) => {
+        if (err) {
+            console.error("Error deleting task:", err.message);
+            res.status(500).json({ error: "Failed to delete task" });
+        } else {
+            res.sendStatus(200);
+        }
+    });
 });
 
 // Start the server
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running at http://localhost:${PORT}`);
 });
