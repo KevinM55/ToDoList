@@ -1,5 +1,16 @@
 document.addEventListener("DOMContentLoaded", fetchAndDisplayTasks); // Fetch tasks on page load
 
+// Add task button functionality
+document.querySelector("button").addEventListener("click", () => {
+    const taskInput = document.getElementById("new-task");
+    const text = taskInput.value.trim();
+    if (text) {
+        addTask(text); // Add the new task
+        taskInput.value = ""; // Clear the input field
+    }
+});
+
+
 // Fetch tasks from the backend and display them in the UI
 function fetchAndDisplayTasks() {
     fetch("/tasks")
@@ -37,6 +48,7 @@ function fetchAndDisplayTasks() {
         })
         .catch(error => console.error("Error fetching tasks:", error)); // Handle errors
 }
+
 
 // Function to add a new task
 function addTask(text) {
@@ -80,13 +92,3 @@ function deleteTask(id) {
         })
         .catch(error => console.error("Error deleting task:", error));
 }
-
-// Add event listener for the "Add Task" button
-document.querySelector("button").addEventListener("click", () => {
-    const taskInput = document.getElementById("new-task");
-    const text = taskInput.value.trim();
-    if (text) {
-        addTask(text); // Add the new task
-        taskInput.value = ""; // Clear the input field
-    }
-});
