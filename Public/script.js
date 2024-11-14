@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", fetchAndDisplayTasks); // Fetch tasks on page load
 
 // Add task button functionality
-document.querySelector("button").addEventListener("click", () => {
+document.querySelector("#add-task-btn").addEventListener("click", () => {
     const taskInput = document.getElementById("new-task");
     const text = taskInput.value.trim();
     if (text) {
@@ -10,26 +10,31 @@ document.querySelector("button").addEventListener("click", () => {
     }
 });
 
-
 // Fetch tasks from the backend and display them in the UI
 function fetchAndDisplayTasks() {
     fetch("/tasks")
         .then(response => response.json()) // Parse the JSON response
         .then(tasks => {
-            const taskList = document.getElementById("task-list");
-            taskList.innerHTML = ""; // Clear the current task list
+            const taskListContainer = document.getElementById("task-list-container");
+            taskListContainer.innerHTML = ""; // Clear the current task list
 
             // Render each task
             tasks.forEach(task => {
-                const listItem = document.createElement("li");
-                listItem.classList.add("task-item");
+                const listItem = document.createElement("div");
+                listItem.classList.add("task-item", "notification", "is-light", "box");
                 if (task.completed) listItem.classList.add("completed");
 
                 listItem.innerHTML = `
-                    <span>${task.text}</span>
-                    <div>
-                        <button class="complete-btn">✔</button>
-                        <button class="delete-btn">✖</button>
+                    <div class="columns is-mobile is-vcentered">
+                        <div class="column is-9">
+                            <span class="has-text-weight-medium">${task.text}</span>
+                            <div><small>Created: ${new Date(task.created_at).toLocaleString()}</small></div>
+                            ${task.updated_at ? `<div><small>Updated: ${new Date(task.updated_at).toLocaleString()}</small></div>` : ""}
+                        </div>
+                        <div class="column is-3 has-text-right">
+                            <button class="button is-success is-small complete-btn">✔</button>
+                            <button class="button is-danger is-small delete-btn">✖</button>
+                        </div>
                     </div>
                 `;
 
@@ -43,12 +48,11 @@ function fetchAndDisplayTasks() {
                     deleteTask(task.id);
                 });
 
-                taskList.appendChild(listItem);
+                taskListContainer.appendChild(listItem);
             });
         })
         .catch(error => console.error("Error fetching tasks:", error)); // Handle errors
 }
-
 
 // Function to add a new task
 function addTask(text) {
@@ -60,7 +64,7 @@ function addTask(text) {
         body: JSON.stringify({ text }), // Send task text
     })
         .then(response => response.json())
-        .then(task => {
+        .then(() => {
             fetchAndDisplayTasks(); // Refresh the task list
         })
         .catch(error => console.error("Error adding task:", error));

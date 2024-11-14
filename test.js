@@ -14,23 +14,28 @@ const db = new sqlite3.Database("./tasks.db", (err) => {
     }
 });
 
-// Create the tasks table with the `created_at` column if it doesn't exist
-db.serialize(() => {
-    db.run(`
-        CREATE TABLE IF NOT EXISTS tasks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            text TEXT NOT NULL,
-            completed BOOLEAN NOT NULL CHECK (completed IN (0, 1)) DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `, (err) => {
+// Middleware to parse JSON and serve static files
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public"))); // Serve static files (e.g., index.html)
+
+// Serve the index.html page when accessing the root
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Fetch all tasks from the database
+app.get("/tasks", (req, res) => {
+    db.all("SELECT * FROM tasks", (err, rows) => {
         if (err) {
-            console.error("Error creating table:", err.message);
+            console.error("Error fetching tasks:", err.message);
+            res.status(500).json({ error: "Failed to retrieve tasks" });
         } else {
-            console.log("Tasks table is ready.");
+            res.json(rows); // Send tasks as JSON
         }
     });
 });
+
+// Add a new task to the database
 app.post("/tasks", (req, res) => {
     const { text } = req.body;
     const sql = "INSERT INTO tasks (text, completed) VALUES (?, ?)";
@@ -45,24 +50,34 @@ app.post("/tasks", (req, res) => {
     });
 });
 
-
-// Middleware to parse JSON and serve static files
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public"))); // Serve static files (e.g., index.html)
-
-// Serve the index.html page when accessing the root
-app.get("/tasks", (req, res) => {
-    db.all("SELECT id, text, completed FROM tasks", (err, rows) => {
+// Update a task's completion status
+app.put("/tasks/:id", (req, res) => {
+    const { id } = req.params;
+    const { completed } = req.body;
+    const sql = "UPDATE tasks SET completed = ? WHERE id = ?";
+    db.run(sql, [completed, id], function (err) {
         if (err) {
-            console.error("Error fetching tasks:", err.message);
-            res.status(500).json({ error: "Failed to retrieve tasks" });
+            console.error("Error updating task:", err.message);
+            res.status(500).json({ error: "Failed to update task" });
         } else {
-            res.json(rows); // Send tasks as JSON
+            res.json({ id, completed }); // Return the updated task as JSON
         }
-    });s
+    });
 });
 
-// (Your existing routes here...)
+// Delete a task from the database
+app.delete("/tasks/:id", (req, res) => {
+    const { id } = req.params;
+    const sql = "DELETE FROM tasks WHERE id = ?";
+    db.run(sql, [id], function (err) {
+        if (err) {
+            console.error("Error deleting task:", err.message);
+            res.status(500).json({ error: "Failed to delete task" });
+        } else {
+            res.status(200).json({ message: "Task deleted" }); // Respond with success message
+        }
+    });
+});
 
 // Start the server
 app.listen(port, () => {
