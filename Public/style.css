@@ -35,13 +35,16 @@ h1 {
 /* Styling the input field to match task list width */
 input#new-task {
     max-width: 400px;  /* Makes the input width consistent with task list */
-    width: 100%;
+    width: 50%;
     font-size: 1.1rem; /* Increase the font size slightly */
     padding: 10px;
     border-radius: 4px;
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-inline: auto;
+   float: left;
+   margin-left: 375px;
 }
 
 /* Ensure input and button are visually aligned */
@@ -49,6 +52,10 @@ button#add-task-btn {
     font-size: 1.1rem; /* Same font size as input field */
     padding: 10px 20px;
     border-radius: 4px;
+    align-items: center;
+    width: 30%;
+    float: right;
+    margin-right: 400px;
 }
 
 /* Center the input box and button together */

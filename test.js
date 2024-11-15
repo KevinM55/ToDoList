@@ -3,7 +3,7 @@ const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 
 const app = express();
-const port = 3000;
+const port = 4000;
 
 // Create and connect to the SQLite database
 const db = new sqlite3.Database("./tasks.db", (err) => {
@@ -75,6 +75,23 @@ app.delete("/tasks/:id", (req, res) => {
             res.status(500).json({ error: "Failed to delete task" });
         } else {
             res.status(200).json({ message: "Task deleted" }); // Respond with success message
+        }
+    });
+});
+
+// Create the tasks table if it doesn't exist
+db.serialize(() => {
+    db.run(`
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text TEXT NOT NULL,
+            completed BOOLEAN NOT NULL CHECK (completed IN (0, 1)) DEFAULT 0
+        )
+    `, (err) => {
+        if (err) {
+            console.error('Error creating table:', err.message);
+        } else {
+            console.log('Tasks table is ready.');
         }
     });
 });

@@ -24,12 +24,24 @@ function fetchAndDisplayTasks() {
                 listItem.classList.add("task-item", "notification", "is-light", "box");
                 if (task.completed) listItem.classList.add("completed");
 
+                // Convert timestamps to GMT+2 time zone
+                const createdAt = new Date(task.created_at);
+                const updatedAt = task.updated_at ? new Date(task.updated_at) : null;
+                
+                const options = {
+                    timeZone: "Africa/Johannesburg",
+                    hour12: false,
+                };
+                
+                const formattedCreatedAt = createdAt.toLocaleString("en-US", options);
+                const formattedUpdatedAt = updatedAt ? updatedAt.toLocaleString("en-US", options) : "";
+
                 listItem.innerHTML = `
                     <div class="columns is-mobile is-vcentered">
                         <div class="column is-9">
                             <span class="has-text-weight-medium">${task.text}</span>
-                            <div><small>Created: ${new Date(task.created_at).toLocaleString()}</small></div>
-                            ${task.updated_at ? `<div><small>Updated: ${new Date(task.updated_at).toLocaleString()}</small></div>` : ""}
+                            <div><small>Created: ${formattedCreatedAt}</small></div>
+                            ${formattedUpdatedAt ? `<div><small>Updated: ${formattedUpdatedAt}</small></div>` : ""}
                         </div>
                         <div class="column is-3 has-text-right">
                             <button class="button is-success is-small complete-btn">✔</button>
