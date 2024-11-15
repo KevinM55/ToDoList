@@ -1,0 +1,18 @@
+{
+  "name": "todolst",
+  "version": "1.0.0",
+  "description": "A simple To-Do List app",
+  "main": "test.js",
+  "scripts": {
+    "start": "node test.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
+    "moment-timezone": "^0.5.46",
+    "sqlite3": "^5.1.7"
+  },
+  "author": "",
+  "license": "ISC"
+}
